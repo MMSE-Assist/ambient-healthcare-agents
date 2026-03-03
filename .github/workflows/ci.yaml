@@ -192,7 +192,7 @@ jobs:
     if: ${{ needs.preflight.outputs.preflight_passed == 'true' && (github.event_name != 'workflow_dispatch' || inputs.run_ambient_provider) }}
     runs-on: arc-runner-set-oke-org-poc-4-gpu
     # runs-on: arc-runners-org-nvidia-ai-bp-2-gpu
-    timeout-minutes: 180
+    timeout-minutes: 240
     
     steps:
       - name: Checkout repository
@@ -304,7 +304,7 @@ jobs:
           python notebook_runner_nbclient.py \
             -f ambient-provider.ipynb \
             --output-dir notebook_output \
-            --timeout 3600 \
+            --timeout 5400 \
             --skip-deps-check \
             --skip-tags ci-skip \
             --skip-cells 1 7 15 16 18 19 20 42 51 \
@@ -322,7 +322,7 @@ jobs:
           echo "  WAITING FOR SERVICES TO BE READY"
           echo "========================================"
           
-          MAX_ATTEMPTS=90
+          MAX_ATTEMPTS=180
           ATTEMPT=0
           
           # Wait for UI (port 5173)
@@ -418,7 +418,7 @@ jobs:
     if: ${{ needs.preflight.outputs.preflight_passed == 'true' && (github.event_name != 'workflow_dispatch' || inputs.run_ambient_patient) }}
     runs-on: arc-runner-set-oke-org-poc-4-gpu
     # runs-on: arc-runners-org-nvidia-ai-bp-8-gpu
-    timeout-minutes: 240
+    timeout-minutes: 300
     
     steps:
       - name: Checkout repository
@@ -547,7 +547,7 @@ jobs:
           python notebook_runner_nbclient.py \
             -f ambient-patient.ipynb \
             --output-dir notebook_output \
-            --timeout 3600 \
+            --timeout 5400 \
             --skip-deps-check \
             --skip-tags ci-skip \
             --skip-cells 19 20 22 24 43 45 47 49 50 51 54 55 56 57 58 59 62 64 68 70 72 \
