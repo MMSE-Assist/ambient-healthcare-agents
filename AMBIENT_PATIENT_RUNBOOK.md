@@ -17,30 +17,57 @@ This document captures the final working setup.
   - `3478` TCP/UDP
   - `50000-52000` UDP
 
+## One-command start (optional)
+
+If you prefer a single command, use:
+
+```bash
+cd "$WORKSPACE_ROOT/ambient-healthcare-agents"
+./scripts/start_ambient_patient.sh <brev-public-ip>
+```
+
+Example:
+
+```bash
+./scripts/start_ambient_patient.sh 160.211.46.40
+```
+
 ---
 
-## 0) Before start: log into Brev and capture current server IP
+## 0) First: get Brev IP and export it locally
 
 ```bash
 export WORKSPACE_ROOT="$HOME/<your-workspace>"
 cd "$WORKSPACE_ROOT"
 
-# replace with your own Brev instance name
-brev shell <brev-instance-name>
+# In a Brev shell, run this and copy the result:
+# curl -s https://ifconfig.me | tr -d '\n'
 
-export SERVER_IP="$(curl -s https://ifconfig.me | tr -d '\n')"
+# In your local terminal, export the copied IP:
+export SERVER_IP="<paste-brev-public-ip>"
 echo "$SERVER_IP"
 ```
 
 Use this `${SERVER_IP}` value in the steps below.
 
-## 1) Go to project directory
+## 1) Open Brev shell and export SERVER_IP there too
+
+Docker Compose interpolation happens in the shell where you run `docker compose`, so export the same value in Brev before running services.
+
+```bash
+# replace with your own Brev instance name
+brev shell <brev-instance-name>
+export SERVER_IP="<paste-brev-public-ip>"
+echo "$SERVER_IP"
+```
+
+## 2) Go to project directory
 
 ```bash
 cd "$WORKSPACE_ROOT/ambient-healthcare-agents/ambient-patient/ace-controller-voice-interface"
 ```
 
-## 2) Verify app env config
+## 3) Verify app env config
 
 File: `ace_controller.env`
 
@@ -53,7 +80,7 @@ TURN_PASSWORD=admin
 TURN_SERVER_URL=turn:${SERVER_IP}:3478
 ```
 
-## 3) Verify remote Riva endpoints
+## 4) Verify remote Riva endpoints
 
 File: `configs/config_riva_hybrid.yaml`
 
@@ -67,7 +94,7 @@ RivaTTSService:
   server: "${SERVER_IP}:50051"
 ```
 
-## 4) Start/restart TURN server (on Brev)
+## 5) Start/restart TURN server (on Brev)
 
 ```bash
 docker rm -f turn-server 2>/dev/null || true
@@ -91,7 +118,7 @@ docker run -d \
   --log-binding
 ```
 
-## 5) Start the agent assistant backend
+## 6) Start the agent assistant backend
 
 The ACE Python app calls the agent backend at `http://app-server-healthcare-assistant:8081`, so start this first.
 
@@ -116,14 +143,14 @@ AGENT_LLM_BASE_URL="https://integrate.api.nvidia.com/v1"
 AGENT_LLM_MODEL="meta/llama-3.3-70b-instruct"
 ```
 
-## 6) Start ACE app services
+## 7) Start ACE app services
 
 ```bash
 docker compose --profile ace-controller down
 docker compose --profile ace-controller up -d --build
 ```
 
-## 7) Verify runtime
+## 8) Verify runtime
 
 ```bash
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
@@ -138,7 +165,7 @@ Expected:
 - `turn-server` up
 - No Riva connection exceptions in `python-app` logs
 
-## 8) Open UI correctly
+## 9) Open UI correctly
 
 Use:
 
@@ -148,7 +175,7 @@ http://${SERVER_IP}:4400
 
 Do **not** use localhost for this deployment.
 
-## 9) Chrome microphone permission workaround
+## 10) Chrome microphone permission workaround
 
 1. Open `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
 2. Add:
@@ -178,6 +205,8 @@ Run this exact sequence after `${SERVER_IP}` changes:
 export WORKSPACE_ROOT="$HOME/<your-workspace>"
 cd "$WORKSPACE_ROOT"
 brev shell <brev-instance-name>
+
+# get current Brev IP and export it in this shell
 export SERVER_IP="$(curl -s https://ifconfig.me | tr -d '\n')"
 echo "$SERVER_IP"
 
