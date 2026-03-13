@@ -4,8 +4,7 @@
 	branch = main
 [submodule "ambient-patient"]
 	path = ambient-patient
-	url = https://github.com/NVIDIA-AI-Blueprints/ambient-patient.git
-	branch = main
+	url = https://github.com/MMSE-Assist/ambient-patient.git
 [submodule "voice-agent-examples"]
 	path = voice-agent-examples
 	url = https://github.com/MMSE-Assist/voice-agent-examples.git
