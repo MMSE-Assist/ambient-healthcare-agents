@@ -5,7 +5,7 @@ This document captures the final working setup.
 ## Scope
 - Ambient Patient UI + Python app from `ace-controller-voice-interface`
 - Agent assistant backend from `ambient-patient/agent` (FastAPI on port `8081`)
-- Remote Riva models on Brev host `${SERVER_IP}`
+- Remote Riva models on Brev host `${BREV_SERVER_IP}`
 - TURN server on Brev host for WebRTC connectivity
 
 ## Prerequisites
@@ -44,21 +44,21 @@ cd "$WORKSPACE_ROOT"
 # curl -s https://ifconfig.me | tr -d '\n'
 
 # In your local terminal, export the copied IP:
-export SERVER_IP="<paste-brev-public-ip>"
-echo "$SERVER_IP"
+export BREV_SERVER_IP="<paste-brev-public-ip>"
+echo "$BREV_SERVER_IP"
 ```
 
-Use this `${SERVER_IP}` value in the steps below.
+Use this `${BREV_SERVER_IP}` value in the steps below.
 
-## 1) Open Brev shell and export SERVER_IP there too
+## 1) Open Brev shell and export BREV_SERVER_IP there too
 
 Docker Compose interpolation happens in the shell where you run `docker compose`, so export the same value in Brev before running services.
 
 ```bash
 # replace with your own Brev instance name
 brev shell <brev-instance-name>
-export SERVER_IP="<paste-brev-public-ip>"
-echo "$SERVER_IP"
+export BREV_SERVER_IP="<paste-brev-public-ip>"
+echo "$BREV_SERVER_IP"
 ```
 
 ## 2) Go to project directory
@@ -77,7 +77,7 @@ Required values:
 CONFIG_PATH=./configs/config_riva_hybrid.yaml
 TURN_USERNAME=admin
 TURN_PASSWORD=admin
-TURN_SERVER_URL=turn:${SERVER_IP}:3478
+TURN_SERVER_URL=turn:${BREV_SERVER_IP}:3478
 ```
 
 ## 4) Verify remote Riva endpoints
@@ -88,10 +88,10 @@ Required values:
 
 ```yaml
 RivaASRService:
-  server: "${SERVER_IP}:50052"
+  server: "${BREV_SERVER_IP}:50052"
 
 RivaTTSService:
-  server: "${SERVER_IP}:50051"
+  server: "${BREV_SERVER_IP}:50051"
 ```
 
 ## 5) Start/restart TURN server (on Brev)
@@ -105,7 +105,7 @@ docker run -d \
   instrumentisto/coturn \
   -n --verbose \
   --log-file=stdout \
-  --external-ip=${SERVER_IP} \
+  --external-ip=${BREV_SERVER_IP} \
   --listening-ip=0.0.0.0 \
   --listening-port=3478 \
   --lt-cred-mech \
@@ -170,7 +170,7 @@ Expected:
 Use:
 
 ```text
-http://${SERVER_IP}:4400
+http://${BREV_SERVER_IP}:4400
 ```
 
 Do **not** use localhost for this deployment.
@@ -179,7 +179,7 @@ Do **not** use localhost for this deployment.
 
 1. Open `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
 2. Add:
-  - `http://${SERVER_IP}:4400`
+  - `http://${BREV_SERVER_IP}:4400`
 3. Relaunch Chrome fully
 
 ---
@@ -199,7 +199,7 @@ docker compose --profile ace-controller down && docker compose --profile ace-con
 
 ## Full restart after IP change
 
-Run this exact sequence after `${SERVER_IP}` changes:
+Run this exact sequence after `${BREV_SERVER_IP}` changes:
 
 ```bash
 export WORKSPACE_ROOT="$HOME/<your-workspace>"
@@ -207,11 +207,11 @@ cd "$WORKSPACE_ROOT"
 brev shell <brev-instance-name>
 
 # get current Brev IP and export it in this shell
-export SERVER_IP="$(curl -s https://ifconfig.me | tr -d '\n')"
-echo "$SERVER_IP"
+export BREV_SERVER_IP="$(curl -s https://ifconfig.me | tr -d '\n')"
+echo "$BREV_SERVER_IP"
 
 cd "$WORKSPACE_ROOT/ambient-healthcare-agents/ambient-patient/ace-controller-voice-interface"
-# update ace_controller.env and configs/config_riva_hybrid.yaml with ${SERVER_IP}
+# update ace_controller.env and configs/config_riva_hybrid.yaml with ${BREV_SERVER_IP}
 
 docker rm -f turn-server 2>/dev/null || true
 docker run -d \
@@ -220,7 +220,7 @@ docker run -d \
   instrumentisto/coturn \
   -n --verbose \
   --log-file=stdout \
-  --external-ip=${SERVER_IP} \
+  --external-ip=${BREV_SERVER_IP} \
   --listening-ip=0.0.0.0 \
   --listening-port=3478 \
   --lt-cred-mech \
@@ -254,7 +254,7 @@ docker rm -f turn-server 2>/dev/null || true
 
 ### A) `ICE checking` then `failed` / WebSocket close `1005`
 - Confirm Brev ports are open (`3478` TCP/UDP, `50000-52000` UDP)
-- Confirm UI is opened via `http://${SERVER_IP}:4400`
+- Confirm UI is opened via `http://${BREV_SERVER_IP}:4400`
 - Tail TURN logs during connect:
 
 ```bash
@@ -268,8 +268,8 @@ If logs stay empty while clicking **Start**, TURN traffic is not reaching the ho
 - Validate remote services:
 
 ```bash
-curl -sS --max-time 5 http://${SERVER_IP}:9000/v1/health/live
-curl -sS --max-time 5 http://${SERVER_IP}:9002/v1/health/live
+curl -sS --max-time 5 http://${BREV_SERVER_IP}:9000/v1/health/live
+curl -sS --max-time 5 http://${BREV_SERVER_IP}:9002/v1/health/live
 ```
 
 ### C) Stale UI config after changes
